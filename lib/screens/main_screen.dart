@@ -9,7 +9,7 @@ import '../widgets/app_drawer.dart';
 import 'home_page.dart';
 import 'modules_page.dart';
 import 'calendar_page.dart';
-// import 'todo_list_page.dart';
+import 'todo_list_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -25,7 +25,7 @@ class _MainScreenState extends State<MainScreen> {
     HomePage(),
     ModulesPage(),
     CalendarPage(),
-    // TodoListPage(),
+    TodoListPage(),
   ];
 
   @override

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../providers/app_data.dart';
-// import '../screens/upload_page.dart';
+import '../screens/upload_page.dart';
 import '../utils/colors.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -128,21 +128,21 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  // Widget _buildUploadItem(BuildContext context) {
-  //   return ListTile(
-  //     leading: const Icon(Icons.upload_file, color: AppColors.textSecondary),
-  //     title: const Text('Upload Materials'),
-  //     onTap: () {
-  //       Navigator.pop(context);
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (_) => UploadPage(appData: appData),
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
+  Widget _buildUploadItem(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.upload_file, color: AppColors.textSecondary),
+      title: const Text('Upload Materials'),
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => UploadPage(appData: appData),
+          ),
+        );
+      },
+    );
+  }
 
   Widget _buildSettingsItem(BuildContext context) {
     return ListTile(
