@@ -1,7 +1,3 @@
-// lib/screens/main_screen.dart
-// Main navigation container with bottom navigation bar
-// Manages navigation between Home, Modules, Calendar, and To-Do screens
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_data.dart';
@@ -11,14 +7,18 @@ import 'modules_page.dart';
 import 'calendar_page.dart';
 import 'todo_list_page.dart';
 
+// Global key to access MainScreen state from anywhere
+final GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
+
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MainScreen> createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+// Made public by removing underscore
+class MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = const [
@@ -27,6 +27,11 @@ class _MainScreenState extends State<MainScreen> {
     CalendarPage(),
     TodoListPage(),
   ];
+
+  // Public method to navigate to a specific page
+  void navigateToPage(int index) {
+    setState(() => _selectedIndex = index);
+  }
 
   @override
   Widget build(BuildContext context) {

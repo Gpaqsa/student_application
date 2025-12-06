@@ -1,7 +1,3 @@
-// lib/models/calendar_event.dart
-// Data model for calendar events
-// Represents scheduled events, deadlines, and exams
-
 class CalendarEvent {
   final String id;
   final String title;
@@ -21,7 +17,6 @@ class CalendarEvent {
     this.description = '',
   });
 
-  // Check if event is today
   bool get isToday {
     final now = DateTime.now();
     return date.year == now.year &&
@@ -29,14 +24,12 @@ class CalendarEvent {
         date.day == now.day;
   }
 
-  // Check if event is upcoming (within next 7 days)
   bool get isUpcoming {
     final now = DateTime.now();
     final difference = date.difference(now);
     return difference.inDays >= 0 && difference.inDays <= 7;
   }
 
-  // Factory constructor from JSON
   factory CalendarEvent.fromJson(Map<String, dynamic> json) {
     return CalendarEvent(
       id: json['id'],
@@ -49,7 +42,6 @@ class CalendarEvent {
     );
   }
 
-  // Convert to JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -62,7 +54,6 @@ class CalendarEvent {
     };
   }
 
-  // Copy with method
   CalendarEvent copyWith({
     String? id,
     String? title,

@@ -1,17 +1,14 @@
-// lib/screens/calendar_page.dart
-// Monthly calendar view showing all events and deadlines
-// Allows users to select dates and view scheduled items
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/app_data.dart';
 import '../models/calendar_event.dart';
+import '../models/task.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key});
+  const CalendarPage({Key? key}) : super(key: key);
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();
@@ -51,13 +48,17 @@ class _CalendarPageState extends State<CalendarPage> {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddExamDialog(context),
+        backgroundColor: AppColors.error,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
-  // Month navigation header
   Widget _buildMonthHeader() {
     return Container(
-      padding: const EdgeInsets.all(AppConstants.paddingMedium),
+      padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -73,7 +74,7 @@ class _CalendarPageState extends State<CalendarPage> {
             },
           ),
           Text(
-            DateFormat(AppConstants.dateFormatMonth).format(_focusedDate),
+            DateFormat('MMMM yyyy').format(_focusedDate),
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -95,11 +96,9 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  // Weekday labels
   Widget _buildWeekdayHeader() {
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: ['S', 'M', 'T', 'W', 'T', 'F', 'S']
@@ -119,7 +118,6 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  // Calendar grid
   Widget _buildCalendarGrid(AppData appData) {
     final firstDayOfMonth = DateTime(_focusedDate.year, _focusedDate.month, 1);
     final lastDayOfMonth =
@@ -128,8 +126,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final startWeekday = firstDayOfMonth.weekday % 7;
 
     return Padding(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppConstants.paddingMedium),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: List.generate(6, (weekIndex) {
           return Padding(
@@ -149,10 +146,15 @@ class _CalendarPageState extends State<CalendarPage> {
                   dayNumber,
                 );
 
-                final hasEvents = appData.calendarEvents.any((e) =>
+                final eventsForDay = appData.calendarEvents
+                    .where((e) =>
                     e.date.year == date.year &&
                     e.date.month == date.month &&
-                    e.date.day == date.day);
+                        e.date.day == date.day)
+                    .toList();
+
+                final hasEvents = eventsForDay.isNotEmpty;
+                final hasExam = eventsForDay.any((e) => e.type == 'Exam');
 
                 final isSelected = _selectedDate.year == date.year &&
                     _selectedDate.month == date.month &&
@@ -172,11 +174,15 @@ class _CalendarPageState extends State<CalendarPage> {
                           ? AppColors.primary
                           : isToday
                               ? AppColors.primary.withOpacity(0.2)
-                              : Colors.transparent,
+                              : hasExam
+                                  ? AppColors.error.withOpacity(0.1)
+                                  : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                       border: isToday && !isSelected
                           ? Border.all(color: AppColors.primary, width: 2)
-                          : null,
+                          : hasExam && !isSelected
+                              ? Border.all(color: AppColors.error, width: 2)
+                              : null,
                     ),
                     child: Stack(
                       alignment: Alignment.center,
@@ -188,20 +194,23 @@ class _CalendarPageState extends State<CalendarPage> {
                                 ? Colors.white
                                 : isToday
                                     ? AppColors.primary
-                                    : AppColors.textPrimary,
-                            fontWeight:
-                                isToday ? FontWeight.bold : FontWeight.normal,
+                                    : hasExam
+                                        ? AppColors.error
+                                        : AppColors.textPrimary,
+                            fontWeight: (isToday || hasExam)
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                         ),
-                        if (hasEvents)
+                        if (hasEvents && !isSelected)
                           Positioned(
                             bottom: 4,
                             child: Container(
                               width: 4,
                               height: 4,
                               decoration: BoxDecoration(
-                                color: isSelected
-                                    ? Colors.white
+                                color: hasExam
+                                    ? AppColors.error
                                     : AppColors.primary,
                                 shape: BoxShape.circle,
                               ),
@@ -219,7 +228,6 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  // Events list for selected date
   Widget _buildEventsList(AppData appData) {
     final eventsForDay = appData.calendarEvents
         .where((e) =>
@@ -228,12 +236,19 @@ class _CalendarPageState extends State<CalendarPage> {
             e.date.day == _selectedDate.day)
         .toList();
 
+    // Sort: Exams first, then by time
+    eventsForDay.sort((a, b) {
+      if (a.type == 'Exam' && b.type != 'Exam') return -1;
+      if (a.type != 'Exam' && b.type == 'Exam') return 1;
+      return a.date.compareTo(b.date);
+    });
+
     if (eventsForDay.isEmpty) {
       return _buildEmptyEventsState();
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(AppConstants.paddingMedium),
+      padding: const EdgeInsets.all(16),
       itemCount: eventsForDay.length,
       itemBuilder: (context, index) {
         final event = eventsForDay[index];
@@ -244,35 +259,89 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Widget _buildEventCard(CalendarEvent event, AppData appData) {
     final module = appData.getModuleByCode(event.moduleCode);
+    final isExam = event.type == 'Exam';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: isExam ? 4 : 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: isExam
+            ? const BorderSide(color: AppColors.error, width: 2)
+            : BorderSide.none,
+      ),
       child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
         leading: CircleAvatar(
           backgroundColor: _getEventColor(event.type),
-          child: Text(
-            event.type[0],
-            style: const TextStyle(color: Colors.white),
+          child: Icon(
+            _getEventIcon(event.type),
+            color: Colors.white,
           ),
         ),
         title: Text(
           event.title,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: isExam ? 16 : 15,
+          ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
-            Text(
-              event.moduleCode,
-              style: TextStyle(
-                fontSize: 12,
-                color: module?.color ?? AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(
+                  Icons.school,
+                  size: 14,
+                  color: module?.color ?? AppColors.textSecondary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  event.moduleCode,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: module?.color ?? AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
-            if (event.description.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(
+                  Icons.access_time,
+                  size: 14,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  DateFormat('h:mm a').format(event.date),
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ],
+            ),
+            if (event.location.isNotEmpty) ...[
               const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.location_on,
+                    size: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    event.location,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ],
+            if (event.description.isNotEmpty) ...[
+              const SizedBox(height: 6),
               Text(
                 event.description,
                 style: const TextStyle(fontSize: 12),
@@ -282,13 +351,399 @@ class _CalendarPageState extends State<CalendarPage> {
             ],
           ],
         ),
-        trailing: Text(
-          DateFormat(AppConstants.timeFormat).format(event.date),
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
+        trailing: isExam
+            ? Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'EXAM',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            : null,
+        onTap: () => _showEventDetails(event, appData),
+      ),
+    );
+  }
+
+  void _showEventDetails(CalendarEvent event, AppData appData) {
+    final module = appData.getModuleByCode(event.moduleCode);
+    final isExam = event.type == 'Exam';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _getEventColor(event.type).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _getEventIcon(event.type),
+                    color: _getEventColor(event.type),
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _getEventColor(event.type).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          event.type,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _getEventColor(event.type),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        event.title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _buildDetailRow(
+              Icons.school,
+              'Module',
+              event.moduleCode,
+              module?.color,
+            ),
+            _buildDetailRow(
+              Icons.calendar_today,
+              'Date',
+              DateFormat('EEEE, MMMM d, yyyy').format(event.date),
+              null,
+            ),
+            _buildDetailRow(
+              Icons.access_time,
+              'Time',
+              DateFormat('h:mm a').format(event.date),
+              null,
+            ),
+            if (event.location.isNotEmpty)
+              _buildDetailRow(
+                Icons.location_on,
+                'Location',
+                event.location,
+                null,
+              ),
+            if (event.description.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Text(
+                'Description',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                event.description,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+            if (isExam) ...[
+              const SizedBox(height: 24),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.error, width: 2),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.warning, color: AppColors.error),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Important: Don\'t forget to prepare for this exam!',
+                        style: TextStyle(
+                          color: AppColors.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+          ],
         ),
+      ),
+    );
+  }
+
+  void _showAddExamDialog(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+    final titleController = TextEditingController();
+    final locationController = TextEditingController();
+    final descriptionController = TextEditingController();
+    String? selectedModule;
+    TimeOfDay selectedTime = TimeOfDay.now();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Row(
+            children: const [
+              Icon(Icons.school, color: AppColors.error),
+              SizedBox(width: 8),
+              Text('Add Exam Deadline'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      labelText: 'Exam Title',
+                      hintText: 'e.g., Midterm Exam',
+                      prefixIcon: Icon(Icons.title),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter exam title';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedModule,
+                    decoration: const InputDecoration(
+                      labelText: 'Module',
+                      prefixIcon: Icon(Icons.book),
+                      border: OutlineInputBorder(),
+                    ),
+                    hint: const Text('Select module'),
+                    items: Provider.of<AppData>(context, listen: false)
+                        .modules
+                        .map((module) {
+                      return DropdownMenuItem(
+                        value: module.code,
+                        child: Text('${module.code} - ${module.name}'),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setDialogState(() => selectedModule = value);
+                    },
+                    validator: (value) {
+                      if (value == null) {
+                        return 'Please select a module';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.calendar_today),
+                    title: const Text('Date'),
+                    subtitle: Text(
+                      DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate),
+                    ),
+                    trailing: const Icon(Icons.edit),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setDialogState(() => _selectedDate = picked);
+                      }
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.access_time),
+                    title: const Text('Time'),
+                    subtitle: Text(selectedTime.format(context)),
+                    trailing: const Icon(Icons.edit),
+                    onTap: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: selectedTime,
+                      );
+                      if (picked != null) {
+                        setDialogState(() => selectedTime = picked);
+                      }
+                    },
+                  ),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: locationController,
+                    decoration: const InputDecoration(
+                      labelText: 'Location (Optional)',
+                      hintText: 'e.g., Room 201',
+                      prefixIcon: Icon(Icons.location_on),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description (Optional)',
+                      hintText: 'Additional details...',
+                      prefixIcon: Icon(Icons.description),
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  final appData = Provider.of<AppData>(context, listen: false);
+
+                  final examDateTime = DateTime(
+                    _selectedDate.year,
+                    _selectedDate.month,
+                    _selectedDate.day,
+                    selectedTime.hour,
+                    selectedTime.minute,
+                  );
+
+                  final newTask = Task(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    title: titleController.text,
+                    moduleCode: selectedModule!,
+                    dueDate: examDateTime,
+                    type: 'Exam',
+                    description: descriptionController.text,
+                    priority: 3,
+                  );
+
+                  appData.addTask(newTask);
+
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Exam deadline added successfully!'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+
+                  setState(() {});
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+              ),
+              child: const Text(
+                'Add Exam',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(
+      IconData icon, String label, String value, Color? color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: color ?? AppColors.textSecondary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(color: AppColors.textPrimary),
+                children: [
+                  TextSpan(
+                    text: '$label: ',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  TextSpan(
+                    text: value,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: color ?? AppColors.textPrimary,
+                      fontWeight:
+                          color != null ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -307,7 +762,7 @@ class _CalendarPageState extends State<CalendarPage> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No events on ${DateFormat(AppConstants.dateFormatShort).format(_selectedDate)}',
+              'No events on ${DateFormat('MMM d, yyyy').format(_selectedDate)}',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -327,16 +782,31 @@ class _CalendarPageState extends State<CalendarPage> {
 
   Color _getEventColor(String type) {
     switch (type) {
-      case AppConstants.typeAssignment:
+      case 'Assignment':
         return AppColors.assignment;
-      case AppConstants.typeQuiz:
+      case 'Quiz':
         return AppColors.quiz;
-      case AppConstants.typeExam:
-        return AppColors.exam;
-      case AppConstants.typeProject:
+      case 'Exam':
+        return AppColors.error;
+      case 'Project':
         return AppColors.project;
       default:
         return Colors.grey;
+    }
+  }
+
+  IconData _getEventIcon(String type) {
+    switch (type) {
+      case 'Assignment':
+        return Icons.assignment;
+      case 'Quiz':
+        return Icons.quiz;
+      case 'Exam':
+        return Icons.school;
+      case 'Project':
+        return Icons.work;
+      default:
+        return Icons.event;
     }
   }
 }
