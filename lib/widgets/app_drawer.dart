@@ -9,11 +9,11 @@ class AppDrawer extends StatelessWidget {
   final AppData appData;
 
   const AppDrawer({
-    Key? key,
+    super.key,
     required this.selectedIndex,
     required this.onItemSelected,
     required this.appData,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

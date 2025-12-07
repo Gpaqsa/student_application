@@ -8,7 +8,7 @@ import '../utils/colors.dart';
 import '../utils/constants.dart';
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({Key? key}) : super(key: key);
+  const CalendarPage({super.key});
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();
@@ -499,8 +499,8 @@ class _CalendarPageState extends State<CalendarPage> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.error, width: 2),
                 ),
-                child: Row(
-                  children: const [
+                child: const Row(
+                  children: [
                     Icon(Icons.warning, color: AppColors.error),
                     SizedBox(width: 12),
                     Expanded(
@@ -535,8 +535,8 @@ class _CalendarPageState extends State<CalendarPage> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Row(
-            children: const [
+          title: const Row(
+            children: [
               Icon(Icons.school, color: AppColors.error),
               SizedBox(width: 8),
               Text('Add Exam Deadline'),
@@ -566,7 +566,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: selectedModule,
+                    initialValue: selectedModule,
                     decoration: const InputDecoration(
                       labelText: 'Module',
                       prefixIcon: Icon(Icons.book),

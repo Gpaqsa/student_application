@@ -8,9 +8,9 @@ class UploadPage extends StatefulWidget {
   final AppData appData;
 
   const UploadPage({
-    Key? key,
+    super.key,
     required this.appData,
-  }) : super(key: key);
+  });
 
   @override
   State<UploadPage> createState() => _UploadPageState();
@@ -44,10 +44,10 @@ class _UploadPageState extends State<UploadPage> {
               // Header card
               Card(
                 color: AppColors.primary.withOpacity(0.1),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                child: const Padding(
+                  padding: EdgeInsets.all(AppConstants.paddingMedium),
                   child: Row(
-                    children: const [
+                    children: [
                       Icon(Icons.upload_file,
                           color: AppColors.primary, size: 32),
                       SizedBox(width: 12),
@@ -128,7 +128,7 @@ class _UploadPageState extends State<UploadPage> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedModule,
+                initialValue: _selectedModule,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius:
@@ -201,9 +201,9 @@ class _UploadPageState extends State<UploadPage> {
                     );
                   },
                   borderRadius: BorderRadius.circular(AppConstants.cardRadius),
-                  child: Column(
+                  child: const Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.cloud_upload_outlined,
                         size: 48,
@@ -299,11 +299,11 @@ class _UploadPageState extends State<UploadPage> {
                 );
               }),
               if (widget.appData.materials.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(32),
+                const Padding(
+                  padding: EdgeInsets.all(32),
                   child: Center(
                     child: Column(
-                      children: const [
+                      children: [
                         Icon(
                           Icons.folder_open,
                           size: 48,

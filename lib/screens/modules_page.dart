@@ -11,7 +11,7 @@ import '../models/module.dart';
 import 'module_details_page.dart';
 
 class ModulesPage extends StatelessWidget {
-  const ModulesPage({Key? key}) : super(key: key);
+  const ModulesPage({super.key});
 
   @override
   Widget build(BuildContext context) {

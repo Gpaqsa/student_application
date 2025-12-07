@@ -9,7 +9,7 @@ import 'module_details_page.dart';
 import 'main_screen.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +275,7 @@ class HomePage extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(
+              const Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
                 color: AppColors.textSecondary,
@@ -496,11 +496,11 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildEmptyState() {
-    return Center(
+    return const Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(32),
         child: Column(
-          children: const [
+          children: [
             Icon(
               Icons.check_circle_outline,
               size: 64,

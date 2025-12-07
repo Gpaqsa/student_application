@@ -11,7 +11,7 @@ import 'todo_list_page.dart';
 final GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  const MainScreen({super.key});
 
   @override
   State<MainScreen> createState() => MainScreenState();

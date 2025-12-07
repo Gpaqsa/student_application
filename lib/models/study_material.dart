@@ -1,7 +1,3 @@
-// lib/models/study_material.dart
-// Data model for study materials (PDFs, videos, slides)
-// Tracks uploaded content for each module
-
 class StudyMaterial {
   final String id;
   final String title;
@@ -26,8 +22,9 @@ class StudyMaterial {
   // Get formatted file size
   String get formattedSize {
     if (sizeInBytes < 1024) return '$sizeInBytes B';
-    if (sizeInBytes < 1024 * 1024)
+    if (sizeInBytes < 1024 * 1024) {
       return '${(sizeInBytes / 1024).toStringAsFixed(1)} KB';
+    }
     return '${(sizeInBytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 

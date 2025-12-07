@@ -7,7 +7,7 @@ import '../utils/colors.dart';
 import '../utils/constants.dart';
 
 class TodoListPage extends StatefulWidget {
-  const TodoListPage({Key? key}) : super(key: key);
+  const TodoListPage({super.key});
 
   @override
   State<TodoListPage> createState() => _TodoListPageState();

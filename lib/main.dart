@@ -10,7 +10,7 @@ void main() {
 }
 
 class ScholarSyncApp extends StatelessWidget {
-  const ScholarSyncApp({Key? key}) : super(key: key);
+  const ScholarSyncApp({super.key});
 
   @override
   Widget build(BuildContext context) {
