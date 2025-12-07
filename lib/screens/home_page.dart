@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/app_data.dart';
 import '../utils/colors.dart';
-import '../utils/constants.dart';
 import '../models/task.dart';
 import 'module_details_page.dart';
 import 'main_screen.dart';

@@ -281,4 +281,184 @@ class AppData extends ChangeNotifier {
       notifyListeners();
     }
   }
+  
 }
+
+
+// import 'package:flutter/material.dart';
+// import '../models/module.dart';
+// import '../models/task.dart';
+// import '../models/study_material.dart';
+// import '../models/calendar_event.dart';
+// import '../utils/colors.dart';
+// import '../database/database_helper.dart';
+
+// class AppData extends ChangeNotifier {
+//   List<Module> _modules = [];
+//   List<Task> _tasks = [];
+//   List<StudyMaterial> _materials = [];
+//   final _db = DatabaseHelper.instance;
+
+//   AppData() {
+//     _initializeData();
+//   }
+
+//   Future<void> _initializeData() async {
+//     _modules = await _db.getAllModules();
+//     _tasks = await _db.getAllTasks();
+//     _materials = await _db.getAllMaterials();
+    
+//     // If database is empty, add sample data
+//     if (_modules.isEmpty) {
+//       await _addSampleData();
+//     }
+//     notifyListeners();
+//   }
+
+//   Future<void> _addSampleData() async {
+//     // Sample modules...
+//     final sampleModules = [
+//       Module(
+//         id: '1',
+//         name: 'Data Structures & Algorithms',
+//         code: 'CS301',
+//         instructor: 'Dr. Emily Smith',
+//         grade: 85.5,
+//         color: AppColors.primary,
+//         description: 'Advanced data structures and algorithm design',
+//         syllabus: ['Introduction to Data Structures', 'Arrays and Linked Lists'],
+//       ),
+//       // ...add other sample modules...
+//     ];
+    
+//     for (var module in sampleModules) {
+//       await _db.insertModule(module);
+//     }
+//     _modules = sampleModules;
+//     notifyListeners();
+//   }
+
+//   // Getters
+//   List<Module> get modules => _modules;
+//   List<Task> get tasks => _tasks;
+//   List<StudyMaterial> get materials => _materials;
+
+//   List<CalendarEvent> get calendarEvents {
+//     return _tasks
+//         .map((task) => CalendarEvent(
+//               id: task.id,
+//               title: task.title,
+//               date: task.dueDate,
+//               type: task.type,
+//               moduleCode: task.moduleCode,
+//               description: task.description,
+//             ))
+//         .toList();
+//   }
+
+//   int get pendingTasksCount => _tasks.where((task) => !task.isCompleted).length;
+//   int get overdueTasksCount => _tasks.where((task) => task.isOverdue).length;
+
+//   List<Task> get upcomingTasks {
+//     final now = DateTime.now();
+//     return _tasks.where((task) {
+//       if (task.isCompleted) return false;
+//       final difference = task.dueDate.difference(now);
+//       return difference.inDays >= 0 && difference.inDays <= 7;
+//     }).toList()
+//       ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+//   }
+
+//   // ========== DATABASE OPERATIONS ==========
+
+//   // Add Module
+//   Future<void> addModule(Module module) async {
+//     await _db.insertModule(module);
+//     _modules.add(module);
+//     notifyListeners();
+//   }
+
+//   // Update Module
+//   Future<void> updateModule(Module module) async {
+//     await _db.updateModule(module);
+//     final index = _modules.indexWhere((m) => m.id == module.id);
+//     if (index != -1) {
+//       _modules[index] = module;
+//       notifyListeners();
+//     }
+//   }
+
+//   // Delete Module
+//   Future<void> deleteModule(String id) async {
+//     await _db.deleteModule(id);
+//     _modules.removeWhere((m) => m.id == id);
+//     notifyListeners();
+//   }
+
+//   // Add Task
+//   Future<void> addTask(Task task) async {
+//     await _db.insertTask(task);
+//     _tasks.add(task);
+//     notifyListeners();
+//   }
+
+//   // Update Task
+//   Future<void> updateTask(Task updatedTask) async {
+//     await _db.updateTask(updatedTask);
+//     final index = _tasks.indexWhere((t) => t.id == updatedTask.id);
+//     if (index != -1) {
+//       _tasks[index] = updatedTask;
+//       notifyListeners();
+//     }
+//   }
+
+//   // Delete Task
+//   Future<void> deleteTask(String taskId) async {
+//     await _db.deleteTask(taskId);
+//     _tasks.removeWhere((t) => t.id == taskId);
+//     notifyListeners();
+//   }
+
+//   // Toggle Task Completion
+//   Future<void> toggleTaskCompletion(String taskId) async {
+//     final taskIndex = _tasks.indexWhere((t) => t.id == taskId);
+//     if (taskIndex != -1) {
+//       _tasks[taskIndex].isCompleted = !_tasks[taskIndex].isCompleted;
+//       await _db.updateTask(_tasks[taskIndex]);
+//       notifyListeners();
+//     }
+//   }
+
+//   // Add Material
+//   Future<void> addMaterial(StudyMaterial material) async {
+//     await _db.insertMaterial(material);
+//     _materials.add(material);
+//     notifyListeners();
+//   }
+
+//   // Delete Material
+//   Future<void> deleteMaterial(String materialId) async {
+//     await _db.deleteMaterial(materialId);
+//     _materials.removeWhere((m) => m.id == materialId);
+//     notifyListeners();
+//   }
+
+//   // Query Methods
+//   List<Task> getModuleTasks(String moduleCode) {
+//     return _tasks.where((t) => t.moduleCode == moduleCode).toList()
+//       ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+//   }
+
+//   List<StudyMaterial> getModuleMaterials(String moduleCode) {
+//     return _materials.where((m) => m.moduleCode == moduleCode).toList()
+//       ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
+//   }
+
+//   Module? getModuleByCode(String code) {
+//     try {
+//       return _modules.firstWhere((m) => m.code == code);
+//     } catch (e) {
+//       return null;
+//     }
+//   }
+// }

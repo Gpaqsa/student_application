@@ -1,11 +1,13 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_data.dart';
 import 'screens/main_screen.dart';
 import 'utils/colors.dart';
+import 'database/database_helper.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await DatabaseHelper.instance.database; // Initialize database
   runApp(const ScholarSyncApp());
 }
 

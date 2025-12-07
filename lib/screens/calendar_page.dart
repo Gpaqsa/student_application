@@ -5,7 +5,6 @@ import '../providers/app_data.dart';
 import '../models/calendar_event.dart';
 import '../models/task.dart';
 import '../utils/colors.dart';
-import '../utils/constants.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});

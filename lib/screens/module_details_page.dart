@@ -12,9 +12,9 @@ class ModuleDetailsPage extends StatefulWidget {
   final Module module;
 
   const ModuleDetailsPage({
-    Key? key,
+    super.key,
     required this.module,
-  }) : super(key: key);
+  });
 
   @override
   State<ModuleDetailsPage> createState() => _ModuleDetailsPageState();
