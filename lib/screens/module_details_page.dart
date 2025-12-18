@@ -6,7 +6,6 @@ import '../models/module.dart';
 import '../models/task.dart';
 import '../models/study_material.dart';
 import '../utils/colors.dart';
-import '../utils/constants.dart';
 
 class ModuleDetailsPage extends StatefulWidget {
   final Module module;
