@@ -5,6 +5,7 @@ import '../providers/app_data.dart';
 import '../models/calendar_event.dart';
 import '../models/task.dart';
 import '../utils/colors.dart';
+import '../utils/constants.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -47,10 +48,11 @@ class _CalendarPageState extends State<CalendarPage> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddExamDialog(context),
-        backgroundColor: AppColors.error,
-        child: const Icon(Icons.add),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddTaskDialog(context),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add),
+        label: const Text('Add Task'),
       ),
     );
   }
@@ -235,7 +237,6 @@ class _CalendarPageState extends State<CalendarPage> {
             e.date.day == _selectedDate.day)
         .toList();
 
-    // Sort: Exams first, then by time
     eventsForDay.sort((a, b) {
       if (a.type == 'Exam' && b.type != 'Exam') return -1;
       if (a.type != 'Exam' && b.type == 'Exam') return 1;
@@ -522,189 +523,372 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  void _showAddExamDialog(BuildContext context) {
+  void _showAddTaskDialog(BuildContext context) {
     final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController();
     final locationController = TextEditingController();
     final descriptionController = TextEditingController();
     String? selectedModule;
+    String selectedType = 'Assignment'; // Default type
     TimeOfDay selectedTime = TimeOfDay.now();
+    int selectedPriority = 2; // Default: Medium
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.school, color: AppColors.error),
-              SizedBox(width: 8),
-              Text('Add Exam Deadline'),
+        builder: (context, setDialogState) {
+          final taskColor = _getEventColor(selectedType);
+
+          return AlertDialog(
+            title: Row(
+              children: [
+                Icon(
+                  _getEventIcon(selectedType),
+                  color: taskColor,
+                ),
+                const SizedBox(width: 8),
+                const Text('Create New Task'),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Task Title
+                    TextFormField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        labelText: 'Task Title',
+                        hintText: 'e.g., Midterm Exam, Assignment 1',
+                        prefixIcon: const Icon(Icons.title),
+                        border: const OutlineInputBorder(),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: taskColor, width: 2),
+                        ),
+                        labelStyle: TextStyle(color: taskColor),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter task title';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Task Type Selection
+                    const Text(
+                      'Task Type',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildTaskTypeChip(
+                          'Assignment',
+                          Icons.assignment,
+                          selectedType,
+                          (type) => setDialogState(() => selectedType = type),
+                        ),
+                        _buildTaskTypeChip(
+                          'Quiz',
+                          Icons.quiz,
+                          selectedType,
+                          (type) => setDialogState(() => selectedType = type),
+                        ),
+                        _buildTaskTypeChip(
+                          'Exam',
+                          Icons.school,
+                          selectedType,
+                          (type) => setDialogState(() => selectedType = type),
+                        ),
+                        _buildTaskTypeChip(
+                          'Project',
+                          Icons.work,
+                          selectedType,
+                          (type) => setDialogState(() => selectedType = type),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Module Selection
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedModule,
+                      decoration: InputDecoration(
+                        labelText: 'Module',
+                        prefixIcon: const Icon(Icons.book),
+                        border: const OutlineInputBorder(),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: taskColor, width: 2),
+                        ),
+                        labelStyle: TextStyle(color: taskColor),
+                      ),
+                      hint: const Text('Select module'),
+                      items: Provider.of<AppData>(context, listen: false)
+                          .modules
+                          .map((module) {
+                        return DropdownMenuItem(
+                          value: module.code,
+                          child: Text('${module.code} - ${module.name}'),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setDialogState(() => selectedModule = value);
+                      },
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Please select a module';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Date Picker
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.calendar_today, color: taskColor),
+                      title: const Text('Due Date'),
+                      subtitle: Text(
+                        DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate),
+                      ),
+                      trailing: const Icon(Icons.edit),
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: _selectedDate,
+                          firstDate: DateTime.now(),
+                          lastDate:
+                              DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (picked != null) {
+                          setDialogState(() => _selectedDate = picked);
+                        }
+                      },
+                    ),
+                    const Divider(),
+
+                    // Time Picker
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.access_time, color: taskColor),
+                      title: const Text('Time'),
+                      subtitle: Text(selectedTime.format(context)),
+                      trailing: const Icon(Icons.edit),
+                      onTap: () async {
+                        final picked = await showTimePicker(
+                          context: context,
+                          initialTime: selectedTime,
+                        );
+                        if (picked != null) {
+                          setDialogState(() => selectedTime = picked);
+                        }
+                      },
+                    ),
+                    const Divider(),
+
+                    // Priority Selection
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Priority',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildPriorityChip(
+                            'Low',
+                            1,
+                            selectedPriority,
+                            Colors.green,
+                            (priority) => setDialogState(
+                                () => selectedPriority = priority),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildPriorityChip(
+                            'Medium',
+                            2,
+                            selectedPriority,
+                            Colors.orange,
+                            (priority) => setDialogState(
+                                () => selectedPriority = priority),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildPriorityChip(
+                            'High',
+                            3,
+                            selectedPriority,
+                            Colors.red,
+                            (priority) => setDialogState(
+                                () => selectedPriority = priority),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Location (Optional)
+                    TextFormField(
+                      controller: locationController,
+                      decoration: InputDecoration(
+                        labelText: 'Location (Optional)',
+                        hintText: 'e.g., Room 201',
+                        prefixIcon: const Icon(Icons.location_on),
+                        border: const OutlineInputBorder(),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: taskColor, width: 2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Description (Optional)
+                    TextFormField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(
+                        labelText: 'Description (Optional)',
+                        hintText: 'Additional details...',
+                        prefixIcon: const Icon(Icons.description),
+                        border: const OutlineInputBorder(),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: taskColor, width: 2),
+                        ),
+                      ),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  if (formKey.currentState!.validate()) {
+                    final appData =
+                        Provider.of<AppData>(context, listen: false);
+                    
+                    final taskDateTime = DateTime(
+                      _selectedDate.year,
+                      _selectedDate.month,
+                      _selectedDate.day,
+                      selectedTime.hour,
+                      selectedTime.minute,
+                    );
+
+                    final newTask = Task(
+                      id: DateTime.now().millisecondsSinceEpoch.toString(),
+                      title: titleController.text,
+                      moduleCode: selectedModule!,
+                      dueDate: taskDateTime,
+                      type: selectedType,
+                      description: descriptionController.text,
+                      priority: selectedPriority,
+                    );
+
+                    appData.addTask(newTask);
+
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('$selectedType added successfully!'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+
+                    setState(() {});
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: taskColor,
+                  foregroundColor: Colors.white,
+                ),
+                icon: const Icon(Icons.add),
+                label: Text('Create $selectedType'),
+              ),
             ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTaskTypeChip(
+    String label,
+    IconData icon,
+    String selectedType,
+    Function(String) onSelected,
+  ) {
+    final isSelected = selectedType == label;
+    final chipColor = _getEventColor(label);
+
+    return FilterChip(
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: isSelected ? chipColor : AppColors.textSecondary,
           ),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: titleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Exam Title',
-                      hintText: 'e.g., Midterm Exam',
-                      prefixIcon: Icon(Icons.title),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter exam title';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedModule,
-                    decoration: const InputDecoration(
-                      labelText: 'Module',
-                      prefixIcon: Icon(Icons.book),
-                      border: OutlineInputBorder(),
-                    ),
-                    hint: const Text('Select module'),
-                    items: Provider.of<AppData>(context, listen: false)
-                        .modules
-                        .map((module) {
-                      return DropdownMenuItem(
-                        value: module.code,
-                        child: Text('${module.code} - ${module.name}'),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setDialogState(() => selectedModule = value);
-                    },
-                    validator: (value) {
-                      if (value == null) {
-                        return 'Please select a module';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.calendar_today),
-                    title: const Text('Date'),
-                    subtitle: Text(
-                      DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate),
-                    ),
-                    trailing: const Icon(Icons.edit),
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: _selectedDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                      );
-                      if (picked != null) {
-                        setDialogState(() => _selectedDate = picked);
-                      }
-                    },
-                  ),
-                  const Divider(),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.access_time),
-                    title: const Text('Time'),
-                    subtitle: Text(selectedTime.format(context)),
-                    trailing: const Icon(Icons.edit),
-                    onTap: () async {
-                      final picked = await showTimePicker(
-                        context: context,
-                        initialTime: selectedTime,
-                      );
-                      if (picked != null) {
-                        setDialogState(() => selectedTime = picked);
-                      }
-                    },
-                  ),
-                  const Divider(),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    controller: locationController,
-                    decoration: const InputDecoration(
-                      labelText: 'Location (Optional)',
-                      hintText: 'e.g., Room 201',
-                      prefixIcon: Icon(Icons.location_on),
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description (Optional)',
-                      hintText: 'Additional details...',
-                      prefixIcon: Icon(Icons.description),
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  final appData = Provider.of<AppData>(context, listen: false);
+          const SizedBox(width: 6),
+          Text(label),
+        ],
+      ),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) onSelected(label);
+      },
+      selectedColor: chipColor.withOpacity(0.2),
+      checkmarkColor: chipColor,
+      labelStyle: TextStyle(
+        color: isSelected ? chipColor : AppColors.textPrimary,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+      ),
+    );
+  }
 
-                  final examDateTime = DateTime(
-                    _selectedDate.year,
-                    _selectedDate.month,
-                    _selectedDate.day,
-                    selectedTime.hour,
-                    selectedTime.minute,
-                  );
+  Widget _buildPriorityChip(
+    String label,
+    int priority,
+    int selectedPriority,
+    Color color,
+    Function(int) onSelected,
+  ) {
+    final isSelected = selectedPriority == priority;
 
-                  final newTask = Task(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    title: titleController.text,
-                    moduleCode: selectedModule!,
-                    dueDate: examDateTime,
-                    type: 'Exam',
-                    description: descriptionController.text,
-                    priority: 3,
-                  );
-
-                  appData.addTask(newTask);
-
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Exam deadline added successfully!'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-
-                  setState(() {});
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error,
-              ),
-              child: const Text(
-                'Add Exam',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) onSelected(priority);
+      },
+      selectedColor: color.withOpacity(0.2),
+      checkmarkColor: color,
+      labelStyle: TextStyle(
+        color: isSelected ? color : AppColors.textPrimary,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        fontSize: 12,
       ),
     );
   }
@@ -786,7 +970,7 @@ class _CalendarPageState extends State<CalendarPage> {
       case 'Quiz':
         return AppColors.quiz;
       case 'Exam':
-        return AppColors.error;
+        return AppColors.exam;
       case 'Project':
         return AppColors.project;
       default:
