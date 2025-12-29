@@ -4,6 +4,7 @@ import '../models/task.dart';
 import '../models/study_material.dart';
 import '../models/calendar_event.dart';
 import '../utils/colors.dart';
+import '../utils/grade_calculator.dart';
 import '../database/database_helper.dart';
 
 class AppData extends ChangeNotifier {
@@ -131,6 +132,8 @@ class AppData extends ChangeNotifier {
         description:
             'Implement binary search tree with insert, delete, and search operations',
         priority: 3,
+        maxScore: 100,
+        weight: 0.15,
       ),
       Task(
         id: '2',
@@ -140,6 +143,8 @@ class AppData extends ChangeNotifier {
         type: 'Quiz',
         description: 'Online quiz covering Provider, Bloc, and GetX',
         priority: 2,
+        maxScore: 50,
+        weight: 0.20,
       ),
       Task(
         id: '3',
@@ -149,6 +154,8 @@ class AppData extends ChangeNotifier {
         type: 'Project',
         description: 'Design and implement a complete database system',
         priority: 3,
+        maxScore: 100,
+        weight: 0.30,
       ),
       Task(
         id: '4',
@@ -158,6 +165,8 @@ class AppData extends ChangeNotifier {
         type: 'Exam',
         description: 'Review chapters 1-6 for midterm examination',
         priority: 3,
+        maxScore: 100,
+        weight: 0.35,
       ),
       Task(
         id: '5',
@@ -167,6 +176,8 @@ class AppData extends ChangeNotifier {
         type: 'Assignment',
         description: 'Normalize given database schema to 3NF',
         priority: 2,
+        maxScore: 100,
+        weight: 0.20,
       ),
       Task(
         id: '6',
@@ -176,6 +187,8 @@ class AppData extends ChangeNotifier {
         type: 'Project',
         description: 'Complete sprint planning for team project',
         priority: 2,
+        maxScore: 100,
+        weight: 0.25,
       ),
     ];
 
@@ -279,16 +292,6 @@ class AppData extends ChangeNotifier {
   }
 
   // ==================== TASK METHODS ====================
-
-  Future<void> toggleTaskCompletion(String taskId) async {
-    final taskIndex = _tasks.indexWhere((t) => t.id == taskId);
-    if (taskIndex != -1) {
-      _tasks[taskIndex].isCompleted = !_tasks[taskIndex].isCompleted;
-      await _dbHelper.updateTask(_tasks[taskIndex]);
-      notifyListeners();
-      debugPrint('Task ${_tasks[taskIndex].title} completion toggled');
-    }
-  }
 
   Future<void> addTask(Task task) async {
     await _dbHelper.insertTask(task);
@@ -408,5 +411,33 @@ class AppData extends ChangeNotifier {
     await clearAllData();
     await _initializeSampleData();
     debugPrint('Data reinitialized with sample data');
+  }
+  
+  // Method to update module grade based on completed tasks
+  Future<void> updateModuleGrade(String moduleCode) async {
+    final tasks = getModuleTasks(moduleCode);
+    final newGrade = GradeCalculator.calculateModuleGrade(tasks);
+
+    final moduleIndex = _modules.indexWhere((m) => m.code == moduleCode);
+    if (moduleIndex != -1) {
+      final updatedModule = _modules[moduleIndex].copyWith(grade: newGrade);
+      await updateModule(updatedModule);
+      debugPrint('Updated $moduleCode grade to $newGrade%');
+    }
+  }
+
+  // Toggle task completion and recalculate module grade
+  Future<void> toggleTaskCompletion(String taskId) async {
+    final taskIndex = _tasks.indexWhere((t) => t.id == taskId);
+    if (taskIndex != -1) {
+      _tasks[taskIndex].isCompleted = !_tasks[taskIndex].isCompleted;
+      await _dbHelper.updateTask(_tasks[taskIndex]);
+
+      // Recalculate module grade
+      await updateModuleGrade(_tasks[taskIndex].moduleCode);
+
+      notifyListeners();
+      debugPrint('Task ${_tasks[taskIndex].title} completion toggled');
+    }
   }
 }

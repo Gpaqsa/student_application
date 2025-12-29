@@ -348,7 +348,43 @@ class _TodoListPageState extends State<TodoListPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    appData.toggleTaskCompletion(task.id);
+                    _showTaskScoreDialog(context, task, appData);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Add Score',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // If marking as complete and no score is set, auto-set to max score
+                    if (!task.isCompleted &&
+                        task.earnedScore == null &&
+                        task.maxScore != null) {
+                      final updatedTask = task.copyWith(
+                        isCompleted: true,
+                        earnedScore: task.maxScore,
+                      );
+                      appData.updateTask(updatedTask);
+                      appData.updateModuleGrade(task.moduleCode);
+                    } else {
+                      appData.toggleTaskCompletion(task.id);
+                    }
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
@@ -488,4 +524,51 @@ class _TodoListPageState extends State<TodoListPage> {
         return Icons.task;
     }
   }
+
+  void _showTaskScoreDialog(BuildContext context, Task task, AppData appData) {
+    final scoreController =
+        TextEditingController(text: task.earnedScore?.toString() ?? '');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Enter Score'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Task: ${task.title}'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: scoreController,
+              decoration: InputDecoration(
+                labelText: 'Score Earned',
+                hintText: 'e.g., 85',
+                suffixText: '/ ${task.maxScore ?? 100}',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final score = double.tryParse(scoreController.text);
+              if (score != null) {
+                final updatedTask = task.copyWith(earnedScore: score);
+                appData.updateTask(updatedTask);
+                appData.updateModuleGrade(task.moduleCode);
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
 }
+

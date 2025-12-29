@@ -37,7 +37,7 @@ class ScholarSyncApp extends StatelessWidget {
             ),
           ),
         ),
-        home: const MainScreen(),
+        home: MainScreen(key: mainScreenKey),
       ),
     );
   }

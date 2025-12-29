@@ -6,6 +6,7 @@ import '../models/module.dart';
 import '../models/task.dart';
 import '../models/study_material.dart';
 import '../utils/colors.dart';
+import '../utils/grade_calculator.dart';
 
 class ModuleDetailsPage extends StatefulWidget {
   final Module module;
@@ -99,13 +100,26 @@ class _ModuleDetailsPageState extends State<ModuleDetailsPage>
                         ),
                       ),
                       const Spacer(),
-                      Text(
-                        '${widget.module.grade}%',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: widget.module.color,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            GradeCalculator.getLetterGrade(widget.module.grade),
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: GradeCalculator.getGradeColor(
+                                  widget.module.grade),
+                            ),
+                          ),
+                          Text(
+                            '${widget.module.grade.toStringAsFixed(1)}%',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -11,6 +11,11 @@ class Task {
   final String description;
   bool isCompleted;
   final int priority;
+  
+  final double? maxScore; // Maximum points (e.g., 100)
+  final double? earnedScore; // Points earned (e.g., 85)
+  final double? weight; // Percentage weight (e.g., 0.30 for 30%)
+
 
   Task({
     required this.id,
@@ -21,6 +26,9 @@ class Task {
     this.description = '',
     this.isCompleted = false,
     this.priority = 1,
+    this.maxScore,
+    this.earnedScore,
+    this.weight,
   });
 
   // Check if task is overdue
@@ -44,6 +52,9 @@ class Task {
       description: json['description'] ?? '',
       isCompleted: json['isCompleted'] ?? false,
       priority: json['priority'] ?? 1,
+      maxScore: json['maxScore'],
+      earnedScore: json['earnedScore'],
+      weight: json['weight'],
     );
   }
 
@@ -58,7 +69,18 @@ class Task {
       'description': description,
       'isCompleted': isCompleted,
       'priority': priority,
+      'maxScore': maxScore,
+      'earnedScore': earnedScore,
+      'weight': weight,
     };
+  }
+
+// Calculate percentage for this task
+  double? get percentage {
+    if (maxScore != null && earnedScore != null && maxScore! > 0) {
+      return (earnedScore! / maxScore!) * 100;
+    }
+    return null;
   }
 
   // Copy with method
@@ -71,6 +93,9 @@ class Task {
     String? description,
     bool? isCompleted,
     int? priority,
+    double? maxScore,
+    double? earnedScore,
+    double? weight,
   }) {
     return Task(
       id: id ?? this.id,
@@ -81,6 +106,11 @@ class Task {
       description: description ?? this.description,
       isCompleted: isCompleted ?? this.isCompleted,
       priority: priority ?? this.priority,
+      maxScore: maxScore ?? this.maxScore,
+      earnedScore: earnedScore ?? this.earnedScore,
+      weight: weight ?? this.weight,
     );
   }
+
+  
 }

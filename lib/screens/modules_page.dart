@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../providers/app_data.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
+import '../utils/grade_calculator.dart';
 import '../models/module.dart';
 import 'module_details_page.dart';
 
@@ -145,17 +146,17 @@ class ModulesPage extends StatelessWidget {
               Column(
                 children: [
                   Text(
-                    '${module.grade}%',
+                    GradeCalculator.getLetterGrade(module.grade),
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: module.color,
+                      color: GradeCalculator.getGradeColor(module.grade),
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Grade',
-                    style: TextStyle(
+                  Text(
+                    '${module.grade.toStringAsFixed(1)}%',
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),
