@@ -371,20 +371,9 @@ class _TodoListPageState extends State<TodoListPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // If marking as complete and no score is set, auto-set to max score
-                    if (!task.isCompleted &&
-                        task.earnedScore == null &&
-                        task.maxScore != null) {
-                      final updatedTask = task.copyWith(
-                        isCompleted: true,
-                        earnedScore: task.maxScore,
-                      );
-                      appData.updateTask(updatedTask);
-                      appData.updateModuleGrade(task.moduleCode);
-                    } else {
-                      appData.toggleTaskCompletion(task.id);
-                    }
+                  onPressed: () async {
+                    // Mark task as complete/incomplete
+                    await appData.toggleTaskCompletion(task.id);
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(

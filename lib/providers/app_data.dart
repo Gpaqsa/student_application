@@ -40,6 +40,9 @@ class AppData extends ChangeNotifier {
       if (_modules.isEmpty && !_isInitialized) {
         await _initializeSampleData();
         _isInitialized = true;
+      } else {
+        // If tasks exist but don't have weights, add them (migration)
+        await _ensureTasksHaveWeights();
       }
     } catch (e) {
       debugPrint('Error loading data from database: $e');
@@ -47,6 +50,40 @@ class AppData extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  // Ensure all tasks have maxScore and weight values
+  Future<void> _ensureTasksHaveWeights() async {
+    debugPrint('Starting task weights migration...');
+
+    for (int i = 0; i < _tasks.length; i++) {
+      var task = _tasks[i];
+      bool needsUpdate = false;
+
+      // Check and add missing maxScore
+      if (task.maxScore == null) {
+        debugPrint('Task ${task.title} missing maxScore, adding 100');
+        task = task.copyWith(maxScore: 100);
+        needsUpdate = true;
+      }
+
+      // Check and add missing weight
+      if (task.weight == null) {
+        debugPrint('Task ${task.title} missing weight, adding 0.20');
+        task = task.copyWith(weight: 0.20); // Default 20% weight
+        needsUpdate = true;
+      }
+
+      // Update both database and in-memory list
+      if (needsUpdate) {
+        _tasks[i] = task; // Update the in-memory list
+        await _dbHelper.updateTask(task); // Update database
+        debugPrint(
+            'Updated task: ${task.title} - maxScore: ${task.maxScore}, weight: ${task.weight}');
+      }
+    }
+
+    debugPrint('Task weights migration completed');
   }
 
   // Initialize with sample data (saved to database)
@@ -294,10 +331,19 @@ class AppData extends ChangeNotifier {
   // ==================== TASK METHODS ====================
 
   Future<void> addTask(Task task) async {
-    await _dbHelper.insertTask(task);
-    _tasks.add(task);
+    // Ensure new tasks have default values for grade calculation
+    var updatedTask = task;
+    if (task.maxScore == null) {
+      updatedTask = task.copyWith(maxScore: 100);
+    }
+    if (task.weight == null) {
+      updatedTask = updatedTask.copyWith(weight: 0.20);
+    }
+
+    await _dbHelper.insertTask(updatedTask);
+    _tasks.add(updatedTask);
     notifyListeners();
-    debugPrint('Task added: ${task.title}');
+    debugPrint('Task added: ${updatedTask.title}');
   }
 
   Future<void> deleteTask(String taskId) async {
@@ -416,7 +462,18 @@ class AppData extends ChangeNotifier {
   // Method to update module grade based on completed tasks
   Future<void> updateModuleGrade(String moduleCode) async {
     final tasks = getModuleTasks(moduleCode);
+    debugPrint('=== Updating Grade for $moduleCode ===');
+    debugPrint('Total tasks: ${tasks.length}');
+
+    for (var task in tasks) {
+      debugPrint('Task: ${task.title}');
+      debugPrint('  Completed: ${task.isCompleted}');
+      debugPrint(
+          '  Earned: ${task.earnedScore}, Max: ${task.maxScore}, Weight: ${task.weight}');
+    }
+    
     final newGrade = GradeCalculator.calculateModuleGrade(tasks);
+    debugPrint('Calculated Grade: $newGrade%');
 
     final moduleIndex = _modules.indexWhere((m) => m.code == moduleCode);
     if (moduleIndex != -1) {
@@ -430,10 +487,22 @@ class AppData extends ChangeNotifier {
   Future<void> toggleTaskCompletion(String taskId) async {
     final taskIndex = _tasks.indexWhere((t) => t.id == taskId);
     if (taskIndex != -1) {
+      debugPrint('=== Toggle Task Completion ===');
+      debugPrint('Task: ${_tasks[taskIndex].title}');
+      debugPrint('Was Completed: ${_tasks[taskIndex].isCompleted}');
+      
       _tasks[taskIndex].isCompleted = !_tasks[taskIndex].isCompleted;
+      
+      debugPrint('Now Completed: ${_tasks[taskIndex].isCompleted}');
+      debugPrint('Earned Score: ${_tasks[taskIndex].earnedScore}');
+      debugPrint('Max Score: ${_tasks[taskIndex].maxScore}');
+      debugPrint('Weight: ${_tasks[taskIndex].weight}');
+
+      // Don't auto-set earnedScore - user must manually add score via "Add Score" button
+      
       await _dbHelper.updateTask(_tasks[taskIndex]);
 
-      // Recalculate module grade
+      // Recalculate module grade (only counts tasks with earnedScore set)
       await updateModuleGrade(_tasks[taskIndex].moduleCode);
 
       notifyListeners();
