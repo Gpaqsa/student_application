@@ -1,7 +1,3 @@
-// lib/screens/modules_page.dart
-// Displays list of all enrolled modules/courses
-// Shows module cards with grades and quick navigation to details
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_data.dart';
