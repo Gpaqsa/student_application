@@ -484,6 +484,7 @@ class AppData extends ChangeNotifier {
   }
 
   // Toggle task completion and recalculate module grade
+  // When task is completed, award 75% of max score (partial credit)
   Future<void> toggleTaskCompletion(String taskId) async {
     final taskIndex = _tasks.indexWhere((t) => t.id == taskId);
     if (taskIndex != -1) {
@@ -493,12 +494,26 @@ class AppData extends ChangeNotifier {
       
       _tasks[taskIndex].isCompleted = !_tasks[taskIndex].isCompleted;
       
+      // Auto-set earnedScore to 75% of maxScore when completing, clear when uncompleting
+      if (_tasks[taskIndex].isCompleted && _tasks[taskIndex].maxScore != null) {
+        final partialScore = _tasks[taskIndex].maxScore! * 0.15;
+        _tasks[taskIndex] = _tasks[taskIndex].copyWith(
+          earnedScore: partialScore,
+        );
+        debugPrint(
+            'Auto-assigned partial score: ${_tasks[taskIndex].earnedScore}/${_tasks[taskIndex].maxScore} (75%)');
+      } else if (!_tasks[taskIndex].isCompleted) {
+        // Clear earned score when task is uncompleted
+        _tasks[taskIndex] = _tasks[taskIndex].copyWith(
+          earnedScore: null,
+        );
+        debugPrint('Cleared earned score');
+      }
+      
       debugPrint('Now Completed: ${_tasks[taskIndex].isCompleted}');
       debugPrint('Earned Score: ${_tasks[taskIndex].earnedScore}');
       debugPrint('Max Score: ${_tasks[taskIndex].maxScore}');
       debugPrint('Weight: ${_tasks[taskIndex].weight}');
-
-      // Don't auto-set earnedScore - user must manually add score via "Add Score" button
       
       await _dbHelper.updateTask(_tasks[taskIndex]);
 

@@ -67,62 +67,70 @@ class _ModuleDetailsPageState extends State<ModuleDetailsPage>
   }
 
   Widget _buildOverviewTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Card(
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: widget.module.color.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          widget.module.code,
-                          style: TextStyle(
-                            color: widget.module.color,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+    return Consumer<AppData>(builder: (context, appData, child) {
+      // Find the current module with updated grade
+      final currentModule = appData.modules.firstWhere(
+        (m) => m.code == widget.module.code,
+        orElse: () => widget.module,
+      );
+
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Card(
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            GradeCalculator.getLetterGrade(widget.module.grade),
+                          decoration: BoxDecoration(
+                            color: widget.module.color.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            widget.module.code,
                             style: TextStyle(
-                              fontSize: 32,
+                              color: widget.module.color,
                               fontWeight: FontWeight.bold,
-                              color: GradeCalculator.getGradeColor(
-                                  widget.module.grade),
-                            ),
-                          ),
-                          Text(
-                            '${widget.module.grade.toStringAsFixed(1)}%',
-                            style: const TextStyle(
                               fontSize: 12,
-                              color: AppColors.textSecondary,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                        const Spacer(),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              GradeCalculator.getLetterGrade(
+                                  currentModule.grade),
+                              style: TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: GradeCalculator.getGradeColor(
+                                    currentModule.grade),
+                              ),
+                            ),
+                            Text(
+                              '${currentModule.grade.toStringAsFixed(1)}%',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: 12),
                   Text(
                     widget.module.name,
@@ -172,6 +180,7 @@ class _ModuleDetailsPageState extends State<ModuleDetailsPage>
         ],
       ),
     );
+    });
   }
 
   Widget _buildTasksTab(AppData appData) {

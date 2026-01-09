@@ -6,6 +6,7 @@ import '../models/study_material.dart';
 import 'package:flutter/material.dart';
 
 class DatabaseHelper {
+  // database connection singleton
   static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
 

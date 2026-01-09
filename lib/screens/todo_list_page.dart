@@ -224,6 +224,27 @@ class _TodoListPageState extends State<TodoListPage> {
                 ),
               ],
             ),
+            if (task.isCompleted && task.earnedScore != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle,
+                    size: 14,
+                    color: Colors.green,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Score: ${task.earnedScore?.toStringAsFixed(0)}/${task.maxScore?.toStringAsFixed(0)} (${task.percentage?.toStringAsFixed(1)}%)',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.green,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
         trailing: task.isOverdue && !task.isCompleted
