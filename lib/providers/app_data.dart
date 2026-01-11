@@ -462,24 +462,12 @@ class AppData extends ChangeNotifier {
   // Method to update module grade based on completed tasks
   Future<void> updateModuleGrade(String moduleCode) async {
     final tasks = getModuleTasks(moduleCode);
-    debugPrint('=== Updating Grade for $moduleCode ===');
-    debugPrint('Total tasks: ${tasks.length}');
-
-    for (var task in tasks) {
-      debugPrint('Task: ${task.title}');
-      debugPrint('  Completed: ${task.isCompleted}');
-      debugPrint(
-          '  Earned: ${task.earnedScore}, Max: ${task.maxScore}, Weight: ${task.weight}');
-    }
-    
     final newGrade = GradeCalculator.calculateModuleGrade(tasks);
-    debugPrint('Calculated Grade: $newGrade%');
 
     final moduleIndex = _modules.indexWhere((m) => m.code == moduleCode);
     if (moduleIndex != -1) {
       final updatedModule = _modules[moduleIndex].copyWith(grade: newGrade);
       await updateModule(updatedModule);
-      debugPrint('Updated $moduleCode grade to $newGrade%');
     }
   }
 
@@ -488,10 +476,6 @@ class AppData extends ChangeNotifier {
   Future<void> toggleTaskCompletion(String taskId) async {
     final taskIndex = _tasks.indexWhere((t) => t.id == taskId);
     if (taskIndex != -1) {
-      debugPrint('=== Toggle Task Completion ===');
-      debugPrint('Task: ${_tasks[taskIndex].title}');
-      debugPrint('Was Completed: ${_tasks[taskIndex].isCompleted}');
-      
       _tasks[taskIndex].isCompleted = !_tasks[taskIndex].isCompleted;
       
       // Auto-set earnedScore to 75% of maxScore when completing, clear when uncompleting
@@ -500,20 +484,12 @@ class AppData extends ChangeNotifier {
         _tasks[taskIndex] = _tasks[taskIndex].copyWith(
           earnedScore: partialScore,
         );
-        debugPrint(
-            'Auto-assigned partial score: ${_tasks[taskIndex].earnedScore}/${_tasks[taskIndex].maxScore} (75%)');
       } else if (!_tasks[taskIndex].isCompleted) {
         // Clear earned score when task is uncompleted
         _tasks[taskIndex] = _tasks[taskIndex].copyWith(
           earnedScore: null,
         );
-        debugPrint('Cleared earned score');
       }
-      
-      debugPrint('Now Completed: ${_tasks[taskIndex].isCompleted}');
-      debugPrint('Earned Score: ${_tasks[taskIndex].earnedScore}');
-      debugPrint('Max Score: ${_tasks[taskIndex].maxScore}');
-      debugPrint('Weight: ${_tasks[taskIndex].weight}');
       
       await _dbHelper.updateTask(_tasks[taskIndex]);
 
@@ -521,7 +497,6 @@ class AppData extends ChangeNotifier {
       await updateModuleGrade(_tasks[taskIndex].moduleCode);
 
       notifyListeners();
-      debugPrint('Task ${_tasks[taskIndex].title} completion toggled');
     }
   }
 }
