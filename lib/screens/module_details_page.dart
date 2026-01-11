@@ -1059,13 +1059,13 @@ class _ModuleDetailsPageState extends State<ModuleDetailsPage>
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       final newGrade = double.tryParse(gradeController.text);
                       if (newGrade != null &&
                           newGrade >= 0 &&
                           newGrade <= 100) {
                         final updatedModule = module.copyWith(grade: newGrade);
-                        appData.updateModule(updatedModule);
+                        await appData.updateModule(updatedModule);
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
