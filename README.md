@@ -51,13 +51,13 @@ Architecture: Clean Architecture with a dedicated DatabaseHelper and Indexed Tab
 
 ## 📊 Database Schema
 
-The application utilizes 5 SQLite tables with optimized indexing for high-speed performance:
+The application utilizes 3 SQLite tables with optimized indexing for high-speed performance:
 
-    - Modules Table: Stores course details, instructor info, and current grades.
+- Modules Table: Stores course details, instructor info, and current grades.
 
-    - Tasks Table: Stores all academic deliverables. Indexes: module_code, due_date, type is_completed.
+- Tasks Table: Stores all academic deliverables. Indexes: module_code, due_date, type is_completed.
 
-    - Study_Materials Table: Tracks uploaded documents and resources.
+- Study_Materials Table: Tracks uploaded documents and resources.
 
 
 ## 🛠 Installation & Setup
