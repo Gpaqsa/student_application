@@ -9,35 +9,35 @@ ScholarSync is a robust Flutter application designed to centralize the academic 
 
 ### 1. Intelligence Dashboard (Home)
 
-Quick Stats: Real-time summary of active modules and pending tasks.
+- Quick Stats: Real-time summary of active modules and pending tasks.
 
-Nerve Center: "Upcoming Tasks" list for immediate focus and quick navigation to full task views.
+- Nerve Center: "Upcoming Tasks" list for immediate focus and quick navigation to full task views.
 
 ### 2. Multi-Layered Module Management
 
-Unified Module View: Data-rich cards displaying course codes, professors, and real-time grade percentages.
+- Unified Module View: Data-rich cards displaying course codes, professors, and real-time grade percentages.
 
-The Triple-Tab Detail System:
+- The Triple-Tab Detail System:
 
-Info: Syllabus, credit hours, and descriptions.
+    - Info: Syllabus, credit hours, and descriptions.
 
-Tasks: Color-coded task management (Assignments, Exams, Quizzes, Projects).
+    - Tasks: Color-coded task management (Assignments, Exams, Quizzes, Projects).
 
-Materials: File repository with upload/download functionality and metadata tracking.
+    - Materials: File repository with upload/download functionality and metadata tracking.
 
 ### 3. Dynamic Academic Tools
 
-Calendar View: Monthly grid with dots for events and distinct red borders for exams.
+- Calendar View: Monthly grid with dots for events and distinct red borders for exams.
 
-Advanced To-Do List: High-performance filtering (Pending, Completed, Overdue) with priority indicators (Low, Medium, High).
+- Advanced To-Do List: High-performance filtering (Pending, Completed, Overdue) with priority indicators (Low, Medium, High).
 
 ### 4. Advanced Grade Logic & Persistence
 
-Sliding Progress Panel: A refined UI approach allowing users to adjust progress per module.
+- Sliding Progress Panel: A refined UI approach allowing users to adjust progress per module.
 
-Auto-Grade Engine: Real-time calculation of final letter grades (A, B, C, etc.) based on accumulated scores.
+- Auto-Grade Engine: Real-time calculation of final letter grades (A, B, C, etc.) based on accumulated scores.
 
-SQLite Backbone: Reliable local storage ensuring data (especially grades) remains persistent across app restarts.
+- SQLite Backbone: Reliable local storage ensuring data (especially grades) remains persistent across app restarts.
 
 ## 🛠 Technical Stack
 Framework: Flutter
@@ -51,11 +51,11 @@ Architecture: Clean Architecture with a dedicated DatabaseHelper and Indexed Tab
 ## 📊 Database Schema
 The application utilizes 5 SQLite tables with optimized indexing for high-speed performance:
 
-Modules Table: Stores course details, instructor info, and current grades.
+    - Modules Table: Stores course details, instructor info, and current grades.
 
-Tasks Table: Stores all academic deliverables. Indexes: module_code, due_date, type, is_completed.
+    - Tasks Table: Stores all academic deliverables. Indexes: module_code, due_date, type, is_completed.
 
-Study_Materials Table: Tracks uploaded documents and resources.
+    - Study_Materials Table: Tracks uploaded documents and resources.
 
 
 ## 🛠 Installation & Setup
@@ -63,7 +63,9 @@ Clone the repository: git clone git@github.com:Gpaqsa/student_application.git
 
 
 Install dependencies:
+
     ```flutter pub get
 
 Run the application:
+
     ```flutter run
