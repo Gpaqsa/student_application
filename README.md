@@ -59,8 +59,7 @@ Study_Materials Table: Tracks uploaded documents and resources.
 
 
 ## 🛠 Installation & Setup
-Clone the repository:
-```git clone git@github.com:Gpaqsa/student_application.git
+Clone the repository: git clone git@github.com:Gpaqsa/student_application.git
 
 
 Install dependencies:
