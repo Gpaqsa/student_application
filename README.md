@@ -40,6 +40,7 @@ ScholarSync is a robust Flutter application designed to centralize the academic 
 - SQLite Backbone: Reliable local storage ensuring data (especially grades) remains persistent across app restarts.
 
 ## 🛠 Technical Stack
+
 Framework: Flutter
 
 State Management: Provider (Reactive UI updates)
@@ -49,23 +50,25 @@ Database: SQLite (Local relational storage)
 Architecture: Clean Architecture with a dedicated DatabaseHelper and Indexed Tables.
 
 ## 📊 Database Schema
+
 The application utilizes 5 SQLite tables with optimized indexing for high-speed performance:
 
     - Modules Table: Stores course details, instructor info, and current grades.
 
-    - Tasks Table: Stores all academic deliverables. Indexes: module_code, due_date, type, is_completed.
+    - Tasks Table: Stores all academic deliverables. Indexes: module_code, due_date, type is_completed.
 
     - Study_Materials Table: Tracks uploaded documents and resources.
 
 
 ## 🛠 Installation & Setup
+
 Clone the repository: git clone git@github.com:Gpaqsa/student_application.git
 
 
 Install dependencies:
 
-    ```flutter pub get
+    flutter pub get
 
 Run the application:
 
-    ```flutter run
+    flutter run
