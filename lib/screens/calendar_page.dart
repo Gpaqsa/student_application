@@ -5,7 +5,6 @@ import '../providers/app_data.dart';
 import '../models/calendar_event.dart';
 import '../models/task.dart';
 import '../utils/colors.dart';
-import '../utils/constants.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -21,20 +20,6 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Calendar'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.today),
-            onPressed: () {
-              setState(() {
-                _selectedDate = DateTime.now();
-                _focusedDate = DateTime.now();
-              });
-            },
-          ),
-        ],
-      ),
       body: Consumer<AppData>(
         builder: (context, appData, child) {
           return Column(
@@ -48,11 +33,15 @@ class _CalendarPageState extends State<CalendarPage> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddTaskDialog(context),
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Task'),
+      floatingActionButton: Consumer<AppData>(
+        builder: (context, appData, _) {
+          return FloatingActionButton.extended(
+            onPressed: () => _showAddTaskDialog(context),
+            backgroundColor: AppColors.primary,
+            icon: const Icon(Icons.add),
+            label: Text(appData.t('addTask')),
+          );
+        },
       ),
     );
   }

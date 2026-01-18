@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../providers/app_data.dart';
-import '../screens/upload_page.dart';
 import '../utils/colors.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -18,40 +18,44 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          _buildDrawerHeader(),
-          _buildDrawerItem(
-            context,
-            icon: Icons.home,
-            title: 'Home',
-            index: 0,
-          ),
-          _buildDrawerItem(
-            context,
-            icon: Icons.book,
-            title: 'My Modules',
-            index: 1,
-          ),
-          _buildDrawerItem(
-            context,
-            icon: Icons.calendar_today,
-            title: 'Calendar',
-            index: 2,
-          ),
-          _buildDrawerItem(
-            context,
-            icon: Icons.checklist,
-            title: 'To-Do List',
-            index: 3,
-          ),
-          const Divider(),
-          // _buildUploadItem(context),
-          _buildSettingsItem(context),
-          const Divider(),
-          _buildAboutItem(context),
-        ],
+      child: Consumer<AppData>(
+        builder: (context, appData, _) {
+          return ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              _buildDrawerHeader(),
+              _buildDrawerItem(
+                context,
+                icon: Icons.home,
+                title: appData.t('home_drawer'),
+                index: 0,
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.book,
+                title: appData.t('modules_drawer'),
+                index: 1,
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.calendar_today,
+                title: appData.t('calendar_drawer'),
+                index: 2,
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.checklist,
+                title: appData.t('todolist_drawer'),
+                index: 3,
+              ),
+              const Divider(),
+              // _buildUploadItem(context),
+              _buildSettingsItem(context, appData),
+              const Divider(),
+              _buildAboutItem(context, appData),
+            ],
+          );
+        },
       ),
     );
   }
@@ -128,49 +132,32 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildUploadItem(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.upload_file, color: AppColors.textSecondary),
-      title: const Text('Upload Materials'),
-      onTap: () {
-        Navigator.pop(context);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => UploadPage(appData: appData),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSettingsItem(BuildContext context) {
+  Widget _buildSettingsItem(BuildContext context, AppData appData) {
     return ListTile(
       leading: const Icon(Icons.settings, color: AppColors.textSecondary),
-      title: const Text('Settings'),
+      title: Text(appData.t('settings')),
       onTap: () {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Settings page coming soon!')),
+          SnackBar(content: Text(appData.t('settingsComingSoon'))),
         );
       },
     );
   }
 
-  Widget _buildAboutItem(BuildContext context) {
+  Widget _buildAboutItem(BuildContext context, AppData appData) {
     return ListTile(
       leading: const Icon(Icons.info_outline, color: AppColors.textSecondary),
-      title: const Text('About'),
+      title: Text(appData.t('about')),
       onTap: () {
         Navigator.pop(context);
         showAboutDialog(
           context: context,
-          applicationName: 'ScholarSync',
-          applicationVersion: '1.0.0',
+          applicationName: appData.t('appTitle'),
+          applicationVersion: appData.t('applicationVersion'),
           applicationIcon: const Icon(Icons.school, size: 48),
-          children: const [
-            Text('A comprehensive student management application'),
-            Text('for university students and educators.'),
+          children: [
+            Text(appData.t('applicationDescription')),
           ],
         );
       },

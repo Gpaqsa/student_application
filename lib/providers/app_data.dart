@@ -6,6 +6,7 @@ import '../models/calendar_event.dart';
 import '../utils/colors.dart';
 import '../utils/grade_calculator.dart';
 import '../database/database_helper.dart';
+import '../services/translation_service.dart';
 
 class AppData extends ChangeNotifier {
   List<Module> _modules = [];
@@ -15,6 +16,10 @@ class AppData extends ChangeNotifier {
   bool _isLoading = true;
   bool _isInitialized = false;
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+  
+  // Language support
+  String _currentLanguage = 'en';
+  final TranslationService _translationService = TranslationService();
 
   AppData() {
     _loadDataFromDatabase();
@@ -25,6 +30,26 @@ class AppData extends ChangeNotifier {
   List<Module> get modules => _modules;
   List<Task> get tasks => _tasks;
   List<StudyMaterial> get materials => _materials;
+  String get currentLanguage => _currentLanguage;
+
+  // Get translation
+  String t(String key) {
+    return _translationService.get(key, _currentLanguage);
+  }
+
+  // Change language
+  void setLanguage(String language) {
+    if (_translationService.isLanguageAvailable(language)) {
+      _currentLanguage = language;
+      notifyListeners();
+      debugPrint('Language changed to: $language');
+    }
+  }
+
+  // Get available languages
+  List<String> getAvailableLanguages() {
+    return _translationService.getAvailableLanguages();
+  }
 
   // Load all data from database
   Future<void> _loadDataFromDatabase() async {

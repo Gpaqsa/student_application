@@ -13,20 +13,6 @@ class ModulesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Modules'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Implement search functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Search coming soon!')),
-              );
-            },
-          ),
-        ],
-      ),
       body: Consumer<AppData>(
         builder: (context, appData, child) {
           if (appData.modules.isEmpty) {
@@ -127,7 +113,7 @@ class ModulesPage extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '$pendingTasks pending tasks',
+                          '$pendingTasks ${appData.t('pending')}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
@@ -167,35 +153,37 @@ class ModulesPage extends StatelessWidget {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.school_outlined,
-              size: 80,
-              color: AppColors.textHint,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'No Modules Yet',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+    return Consumer<AppData>(
+      builder: (context, appData, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.school_outlined,
+                size: 80,
+                color: AppColors.textHint,
               ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Your enrolled modules will appear here',
-              style: TextStyle(
-                color: AppColors.textSecondary,
+              const SizedBox(height: 16),
+              Text(
+                appData.t('noModules'),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                appData.t('applicationDescription'),
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

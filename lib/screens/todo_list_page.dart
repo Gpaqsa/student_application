@@ -6,8 +6,12 @@ import '../models/task.dart';
 import '../utils/colors.dart';
 import '../utils/constants.dart';
 
+// Global key to access TodoListPage state
+final GlobalKey<_TodoListPageState> todoListPageKey =
+    GlobalKey<_TodoListPageState>();
+
 class TodoListPage extends StatefulWidget {
-  const TodoListPage({super.key});
+  const TodoListPage({Key? key}) : super(key: key);
 
   @override
   State<TodoListPage> createState() => _TodoListPageState();
@@ -16,61 +20,38 @@ class TodoListPage extends StatefulWidget {
 class _TodoListPageState extends State<TodoListPage> {
   String _filter = 'All';
 
+  // Public method to change filter
+  void setFilter(String newFilter) {
+    print('Setting filter to: $newFilter');
+    setState(() => _filter = newFilter);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('To-Do List'),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) => setState(() => _filter = value),
-            icon: const Icon(Icons.filter_list),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'All',
-                child: Text('All Tasks'),
-              ),
-              const PopupMenuItem(
-                value: 'Pending',
-                child: Text('Pending Only'),
-              ),
-              const PopupMenuItem(
-                value: 'Completed',
-                child: Text('Completed Only'),
-              ),
-              const PopupMenuItem(
-                value: 'Overdue',
-                child: Text('Overdue'),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: Consumer<AppData>(
-        builder: (context, appData, child) {
-          final tasks = _getFilteredTasks(appData);
+    return Consumer<AppData>(
+      builder: (context, appData, child) {
+        final tasks = _getFilteredTasks(appData);
 
-          if (tasks.isEmpty) {
-            return _buildEmptyState();
-          }
+        if (tasks.isEmpty) {
+          return _buildEmptyState(appData);
+        }
 
-          return Column(
-            children: [
-              _buildFilterChips(),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(AppConstants.paddingMedium),
-                  itemCount: tasks.length,
-                  itemBuilder: (context, index) {
-                    final task = tasks[index];
-                    return _buildTaskCard(task, appData);
-                  },
-                ),
+        return Column(
+          children: [
+            _buildFilterChips(appData),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  final task = tasks[index];
+                  return _buildTaskCard(task, appData);
+                },
               ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -90,7 +71,7 @@ class _TodoListPageState extends State<TodoListPage> {
     }
   }
 
-  Widget _buildFilterChips() {
+  Widget _buildFilterChips(AppData appData) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppConstants.paddingMedium,
@@ -98,28 +79,33 @@ class _TodoListPageState extends State<TodoListPage> {
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _buildFilterChip('All'),
-            const SizedBox(width: 8),
-            _buildFilterChip('Pending'),
-            const SizedBox(width: 8),
-            _buildFilterChip('Completed'),
-            const SizedBox(width: 8),
-            _buildFilterChip('Overdue'),
+            _buildFilterChip('All', appData.t('all')),
+            const SizedBox(width: 12),
+            _buildFilterChip('Pending', appData.t('pending')),
+            const SizedBox(width: 12),
+            _buildFilterChip('Completed', appData.t('completed')),
+            const SizedBox(width: 12),
+            _buildFilterChip('Overdue', appData.t('overdue')),
+            const SizedBox(width: 12),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFilterChip(String label) {
-    final isSelected = _filter == label;
+  Widget _buildFilterChip(String value, String label) {
+    final isSelected = _filter == value;
     return FilterChip(
       label: Text(label),
       selected: isSelected,
       onSelected: (selected) {
-        setState(() => _filter = label);
+        setState(() => _filter = value);
       },
       selectedColor: AppColors.primary.withOpacity(0.2),
       checkmarkColor: AppColors.primary,
@@ -439,7 +425,7 @@ class _TodoListPageState extends State<TodoListPage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppData appData) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -456,10 +442,10 @@ class _TodoListPageState extends State<TodoListPage> {
             const SizedBox(height: 16),
             Text(
               _filter == 'Completed'
-                  ? 'No Completed Tasks'
+                  ? appData.t('completedOnly')
                   : _filter == 'Overdue'
-                      ? 'No Overdue Tasks'
-                      : 'No Tasks',
+                      ? appData.t('overdue')
+                      : appData.t('allTasks'),
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -557,4 +543,3 @@ class _TodoListPageState extends State<TodoListPage> {
     );
   }
 }
-

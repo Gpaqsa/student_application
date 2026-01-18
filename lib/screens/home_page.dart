@@ -13,9 +13,6 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-      ),
       body: Consumer<AppData>(
         builder: (context, appData, child) {
           return SingleChildScrollView(
@@ -23,16 +20,16 @@ class HomePage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildWelcomeCard(),
+                _buildWelcomeCard(appData),
                 const SizedBox(height: 24),
                 _buildStatsRow(appData, context),
                 const SizedBox(height: 24),
-                _buildSectionHeader('Upcoming Tasks'),
+                _buildSectionHeader(appData, appData.t('upcomingTasks')),
                 const SizedBox(height: 12),
                 ...appData.upcomingTasks.take(5).map(
                       (task) => _buildTaskCard(context, task, appData),
                     ),
-                if (appData.upcomingTasks.isEmpty) _buildEmptyState(),
+                if (appData.upcomingTasks.isEmpty) _buildEmptyState(appData),
                 const SizedBox(height: 16),
                 Center(
                   child: ElevatedButton.icon(
@@ -41,7 +38,7 @@ class HomePage extends StatelessWidget {
                       mainScreenKey.currentState?.navigateToPage(3);
                     },
                     icon: const Icon(Icons.arrow_forward),
-                    label: const Text('View All Tasks'),
+                    label: Text(appData.t('viewAllTasks')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -63,7 +60,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildWelcomeCard() {
+  Widget _buildWelcomeCard(AppData appData) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -81,9 +78,9 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Welcome Back!',
-              style: TextStyle(
+            Text(
+              appData.t('welcome'),
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -108,7 +105,7 @@ class HomePage extends StatelessWidget {
       children: [
         Expanded(
           child: _buildStatCard(
-            'Active Modules',
+            appData.t('myModules'),
             '${appData.modules.length}',
             Icons.book,
             AppColors.primary,
@@ -121,7 +118,7 @@ class HomePage extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(
           child: _buildStatCard(
-            'Pending Tasks',
+            appData.t('pendingTasksCount'),
             '${appData.pendingTasksCount}',
             Icons.assignment,
             AppColors.warning,
@@ -177,7 +174,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(AppData appData, String title) {
     return Text(
       title,
       style: const TextStyle(
@@ -258,10 +255,12 @@ class HomePage extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           task.isOverdue
-                              ? 'Overdue'
+                              ? appData.t('overdue')
                               : daysLeft == 0
-                                  ? 'Due today'
-                                  : 'Due in $daysLeft days',
+                                  ? appData.t('dueToday')
+                                  : appData
+                                      .t('dueInDays')
+                                      .replaceAll('{days}', '$daysLeft'),
                           style: TextStyle(
                             fontSize: 12,
                             color: task.isOverdue
@@ -353,31 +352,31 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 20),
             _buildDetailRow(
               Icons.school,
-              'Module',
+              appData.t('module'),
               task.moduleCode,
               module?.color,
             ),
             _buildDetailRow(
               Icons.calendar_today,
-              'Due Date',
+              appData.t('dueDate'),
               DateFormat('EEEE, MMMM d, yyyy').format(task.dueDate),
               null,
             ),
             _buildDetailRow(
               Icons.priority_high,
-              'Priority',
+              appData.t('priority'),
               task.priority == 3
-                  ? 'High'
+                  ? appData.t('high')
                   : task.priority == 2
-                      ? 'Medium'
-                      : 'Low',
+                      ? appData.t('medium')
+                      : appData.t('low'),
               null,
             ),
             if (task.description.isNotEmpty) ...[
               const SizedBox(height: 20),
-              const Text(
-                'Description',
-                style: TextStyle(
+              Text(
+                appData.t('description'),
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -413,7 +412,7 @@ class HomePage extends StatelessWidget {
                           BorderSide(color: module?.color ?? AppColors.primary),
                     ),
                     child: Text(
-                      'View Module',
+                      appData.t('viewModule'),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -439,7 +438,9 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      task.isCompleted ? 'Incomplete' : 'Complete',
+                      task.isCompleted
+                          ? appData.t('incomplete')
+                          : appData.t('complete'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -494,26 +495,26 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
-    return const Center(
+  Widget _buildEmptyState(AppData appData) {
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         child: Column(
           children: [
-            Icon(
+            const Icon(
               Icons.check_circle_outline,
               size: 64,
               color: AppColors.success,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
-              'All caught up!',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              appData.t('allCaughtUp'),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
-              'No upcoming tasks at the moment',
-              style: TextStyle(color: AppColors.textSecondary),
+              appData.t('noTasks'),
+              style: const TextStyle(color: AppColors.textSecondary),
             ),
           ],
         ),
