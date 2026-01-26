@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_data.dart';
-import '../widgets/language_selector.dart';
 import 'home_page.dart';
 import 'modules_page.dart';
 import 'calendar_page.dart';
 import 'todo_list_page.dart';
+import 'settings_page.dart';
 
 // Global key to access MainScreen state from anywhere
 final GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
@@ -78,8 +78,17 @@ class MainScreenState extends State<MainScreen> {
           },
         ),
         elevation: 0,
-        actions: const [
-          LanguageSelector(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
+            tooltip: 'Settings',
+          ),
         ],
       ),
       body: AnimatedSwitcher(

@@ -20,6 +20,9 @@ class AppData extends ChangeNotifier {
   // Language support
   String _currentLanguage = 'en';
   final TranslationService _translationService = TranslationService();
+  
+  // Theme support
+  Brightness _themeBrightness = Brightness.light;
 
   AppData() {
     _loadDataFromDatabase();
@@ -31,6 +34,7 @@ class AppData extends ChangeNotifier {
   List<Task> get tasks => _tasks;
   List<StudyMaterial> get materials => _materials;
   String get currentLanguage => _currentLanguage;
+  Brightness get themeBrightness => _themeBrightness;
 
   // Get translation
   String t(String key) {
@@ -49,6 +53,14 @@ class AppData extends ChangeNotifier {
   // Get available languages
   List<String> getAvailableLanguages() {
     return _translationService.getAvailableLanguages();
+  }
+
+  // Change theme brightness
+  void setThemeBrightness(Brightness brightness) {
+    _themeBrightness = brightness;
+    notifyListeners();
+    debugPrint(
+        'Theme changed to: ${brightness == Brightness.dark ? "Dark" : "Light"}');
   }
 
   // Load all data from database

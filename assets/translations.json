@@ -140,7 +140,10 @@
     "totalModules": "Total Modules",
     "totalTasks": "Total Tasks",
     "completedTasks": "Completed Tasks",
-    "averageScore": "Average Score"
+    "averageScore": "Average Score",
+    "theme": "Theme",
+    "darkMode": "Dark Mode",
+    "themeDescription": "Switch between light and dark mode for comfortable viewing"
   },
   "ge": {
     "appTitle": "ScholarSync",
@@ -283,7 +286,10 @@
     "totalModules": "სულ მოდულები",
     "totalTasks": "სულ დავალებები",
     "completedTasks": "დასრულებული დავალებები",
-    "averageScore": "საშუალო ქულა"
+    "averageScore": "საშუალო ქულა",
+    "theme": "თემა",
+    "darkMode": "მუქი რეჟიმი",
+    "themeDescription": "გადარჩევა ღია და მუქი რეჟიმს შორის კომფორტული ნახვისთვის"
   },
   "ger": {
     "appTitle": "ScholarSync",
@@ -424,6 +430,9 @@
     "no_overdue": "Keine überfälligen Aufgaben",
     "statisticsTitle": "Statistik",
     "totalModules": "Gesamtmodule",
+    "theme": "Thema",
+    "darkMode": "Dunkler Modus",
+    "themeDescription": "Wechseln Sie zwischen hellem und dunklem Modus für bequemes Anzeigen",
     "totalTasks": "Gesamtaufgaben",
     "completedTasks": "Abgeschlossene Aufgaben",
     "averageScore": "Durchschnittliche Punktzahl"
